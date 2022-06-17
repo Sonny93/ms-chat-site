@@ -1,0 +1,113 @@
+* {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	box-sizing: border-box;
+	outline: none;
+}
+
+html,
+body {
+	height: 100%;
+	width: 100%;
+	color: #111;
+	background-color: #f0eef6;
+	font-family: "Poppins", sans-serif;
+	padding: 0;
+	margin: 0;
+}
+
+#__next {
+	height: 100%;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+}
+
+a {
+	width: fit-content;
+	color: #3f88c5;
+	border-bottom: 1px solid transparent;
+	text-decoration: none;
+	transition: 0.15s;
+
+	&:hover,
+	&:focus {
+		color: #3d7bab;
+		border-bottom: 1px solid #3d7bab;
+	}
+}
+
+button {
+	cursor: pointer;
+	width: 100%;
+	color: #fff;
+	background: #3f88c5;
+	padding: 10px;
+	border: 1px solid #3f88c5;
+	border-radius: 3px;
+	transition: 0.15s;
+
+	&:disabled {
+		cursor: default;
+		opacity: 0.5;
+	}
+
+	&:not(:disabled):hover {
+		box-shadow: #105b97 0 0 3px 1px;
+		background: #105b97;
+		color: #fff;
+	}
+}
+
+input:not(.nostyle),
+textarea:not(.nostyle) {
+	color: #333;
+	background: #fff;
+	padding: 10px;
+	border: 1px solid #dadce0;
+	border-bottom: 3px solid #dadce0;
+	transition: 0.15s;
+
+	&:focus {
+		border-bottom: 3px solid #3f88c5;
+	}
+
+	&::placeholder {
+		font-style: italic;
+		color: #dadce0;
+	}
+}
+
+.input-field {
+	width: 100%;
+
+	& label,
+	& input,
+	& textarea,
+	& select {
+		width: 100%;
+	}
+}
+
+/* width */
+::-webkit-scrollbar {
+	width: 7px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+	background: #eee;
+	border-radius: 2px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+	background: #3f88c5;
+	border-radius: 2px;
+
+	&:hover {
+		background: #1e5c8f;
+	}
+}
