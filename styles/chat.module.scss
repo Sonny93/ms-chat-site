@@ -1,0 +1,105 @@
+.app {
+    height: 100%;
+    width: 100%;
+    // font-size: 1.75em;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    & .users {
+        height: 100%;
+        width: 250px;
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    & .container {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex: 1;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+
+        & .header {
+            height: fit-content;
+            width: 100%;
+            // text-align: center;
+            padding: 15px 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #dadce0;
+        }
+
+        & .messages {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            overflow-y: auto;
+
+            & .message {
+                padding: 15px 5px;
+                border-top: 1px solid #dadce0;
+                display: flex;
+                align-items: center;
+
+                &:first-child {
+                    // padding-top: 0;
+                    border-top: 0;
+                }
+
+                &:last-child {
+                    padding-bottom: 0;
+                }
+
+                & .avatar {
+                    height: 100%;
+                    margin-right: 15px;
+
+                    & img {
+                        border-radius: 50%;
+                    }
+                }
+
+                & .content-container {
+                    display: flex;
+                    justify-content: center;
+                    flex-direction: column;
+
+                    & .author {
+                        font-weight: 500;
+                        color: #333;
+                    }
+
+                    & .content {
+                        width: 100%;
+                        overflow: none;
+                        word-break: break-all;
+                    }
+                }
+            }
+        }
+
+        & .controls {
+            height: fit-content;
+            width: 100%;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            & input {
+                display: flex;
+                flex: 1;
+            }
+
+            & button {
+                width: 175px;
+            }
+        }
+    }
+}

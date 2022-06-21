@@ -1,18 +1,21 @@
+@import "https://fonts.googleapis.com/css?family=Roboto:300,400,500";
+
 * {
 	margin: 0;
 	padding: 0;
 	border: 0;
 	box-sizing: border-box;
 	outline: none;
+	scroll-behavior: smooth;
 }
 
 html,
 body {
 	height: 100%;
 	width: 100%;
-	color: #111;
+	color: #555;
 	background-color: #f0eef6;
-	font-family: "Poppins", sans-serif;
+	font-family: "Roboto", "Helvetica", "Arial", sans-serif;
 	padding: 0;
 	margin: 0;
 }
@@ -37,6 +40,18 @@ a {
 		color: #3d7bab;
 		border-bottom: 1px solid #3d7bab;
 	}
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+b,
+strong {
+	font-weight: 500;
+	color: #333;
 }
 
 button {
