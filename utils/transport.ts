@@ -1,56 +1,47 @@
 import { Device } from 'mediasoup-client';
 import { DtlsParameters, Transport } from 'mediasoup-client/lib/Transport';
+import { Socket } from 'socket.io-client';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export interface connectTransportProps {
-    userId: string;
     dtlsParameters: DtlsParameters;
-    type: 'send' | 'recv';
+    direction: 'send' | 'recv';
+    socket: Socket;
 }
-export async function connectTransport({ userId, dtlsParameters, type }: connectTransportProps): Promise<{ id: string; }> {
-    const options = {
-        method: 'POST',
-        body: JSON.stringify({
-            userId,
-            dtlsParameters
-        }),
-        headers: { 'Content-Type': 'application/json' }
-    } as RequestInit;
+export function connectTransport({ dtlsParameters, direction, socket }: connectTransportProps): Promise<{ transportId: string; }> {
+    return new Promise((resolve, reject) => {
+        if (direction !== 'recv' && direction !== 'send') {
+            return reject('Wrong transport direction, expected send or recv but got ' + direction);
+        }
 
-    if (type !== 'recv' && type !== 'send') {
-        throw new Error('Wrong transport type, expected send or recv but got' + type);
-    }
-
-    const response = await fetch(`${API_URL}/transport/connect/${type}`, options);
-    const data = await response.json();
-
-    return data;
+        socket.emit('transport-connect', { direction, dtlsParameters }, ({ error, transportId }) => {
+            if (error) {
+                return reject(error);
+            } else {
+                return resolve(transportId);
+            }
+        })
+    });
 }
 
 export interface createTransportProps {
-    userId: string;
     device: Device;
-    type: 'send' | 'recv';
+    direction: 'send' | 'recv';
+    socket: Socket;
 }
-export async function createTransport({ userId, device, type }: createTransportProps): Promise<Transport> {
-    const options = {
-        method: 'POST',
-        body: JSON.stringify({ userId }),
-        headers: { 'Content-Type': 'application/json' }
-    } as RequestInit;
-
-    const response = await fetch(`${API_URL}/transport/create/${type}`, options);
-    const data = await response.json();
-
-    let transport: Transport;
-    if (type === 'send') {
-        transport = device.createSendTransport(data.transport);
-    } else if (type === 'recv') {
-        transport = device.createRecvTransport(data.transport);
-    } else {
-        throw new Error('Wrong transport type, expected send or recv but got' + type);
-    }
-
-    return transport;
+export function createTransport({ device, direction, socket }: createTransportProps): Promise<Transport> {
+    return new Promise((resolve, reject) => {
+        socket.emit('transport-create', { direction: direction }, ({ error, transport }) => {
+            if (error) {
+                return reject(error);
+            } else if (direction === 'send') {
+                return resolve(device.createSendTransport(transport));
+            } else if (direction === 'recv') {
+                return resolve(device.createRecvTransport(transport));
+            } else {
+                return reject('Wrong transport direction, expected send or recv but got' + direction);
+            }
+        });
+    });
 }

@@ -9,7 +9,7 @@ import io, { Socket } from 'socket.io-client';
 import Stats from '../components/stats';
 
 import { connectTransport, createTransport } from '../utils/transport';
-import { produceMedia } from '../utils/consumer';
+import { produceMedia } from '../utils/producer';
 
 import styles from '../styles/stream-view.module.scss';
 

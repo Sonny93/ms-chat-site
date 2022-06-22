@@ -1,24 +1,21 @@
-import { RtpCapabilities } from 'mediasoup-client/lib/types';
+import { MediaKind, RtpCapabilities, RtpParameters } from 'mediasoup-client/lib/types';
+import { Socket } from 'socket.io-client';
 
-interface consumeMediaProps {
-    userId: string;
+interface ProduceMediaProps {
+    socket: Socket;
+    rtpParameters: RtpParameters;
     clientRtpCapabilities: RtpCapabilities;
-    producerId: string;
+    kind: MediaKind;
 }
 
-export async function consumeMedia({ userId, clientRtpCapabilities, producerId }: consumeMediaProps) {
-    const options = {
-        method: 'POST',
-        body: JSON.stringify({
-            userId,
-            clientRtpCapabilities,
-            producerId
-        }),
-        headers: { 'Content-Type': 'application/json' }
-    } as RequestInit;
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/consumeMedia`, options);
-    const data = await response.json();
-
-    return data;
+export async function produceMedia({ socket, rtpParameters, clientRtpCapabilities, kind }: ProduceMediaProps): Promise<string> {
+    return new Promise((resolve, reject) => {
+        socket.emit('produceMedia', { rtpParameters, clientRtpCapabilities, kind }, ({ error, produceId }) => {
+            if (error) {
+                return reject(error);
+            } else {
+                resolve(produceId);
+            }
+        });
+    });
 }

@@ -2,6 +2,7 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Socket } from 'socket.io-client';
+import CallManager from '../../components/CallManager';
 import ControlsInput from '../../components/ControlsInput';
 import MessageList from '../../components/MessageList';
 import UserList from '../../components/UserList';
@@ -9,6 +10,7 @@ import UserList from '../../components/UserList';
 import { addMessage, addUser, clearMessages, clearUsers, removeMessage, removeUser } from '../../lib/Redux';
 
 import styles from '../../styles/chat.module.scss';
+import { createTransport } from '../../utils/transport';
 
 function Rooms({ roomId, socket }: { roomId: string | undefined; socket: Socket; }) {
     const router = useRouter();
@@ -37,6 +39,8 @@ function Rooms({ roomId, socket }: { roomId: string | undefined; socket: Socket;
         room.users.map((user) => dispatch(addUser(user)));
         room.messages.map((message) => dispatch(addMessage(message)));
 
+        socket.removeAllListeners();
+
         socket.on('user-join', handleUserJoin);
         socket.on('user-leave', handleUserLeave);
         socket.on('message-new', handleMessageNew);
@@ -45,11 +49,6 @@ function Rooms({ roomId, socket }: { roomId: string | undefined; socket: Socket;
         return () => {
             dispatch(clearUsers());
             dispatch(clearMessages());
-
-            socket.off('user-join', handleUserJoin);
-            socket.off('user-leave', handleUserLeave);
-            socket.off('message-new', handleMessageNew);
-            socket.off('message-remove', handleMessageRemove);
         }
     }, [dispatch, handleMessageNew, handleMessageRemove, handleUserJoin, handleUserLeave, router, socket]);
 
@@ -78,7 +77,12 @@ function Rooms({ roomId, socket }: { roomId: string | undefined; socket: Socket;
             <UserList />
             <div className={styles['container']}>
                 <div className={styles['header']}>
-                    <h4>{room.name} ({messages.length} messages)</h4>
+                    <h4>
+                        {room.name} ({messages.length} messages)
+                    </h4>
+                    <CallManager
+                        socket={socket}
+                    />
                 </div>
                 <MessageList innerRef={messageListRef} />
                 <ControlsInput socket={socket} />

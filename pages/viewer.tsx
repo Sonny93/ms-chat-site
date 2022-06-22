@@ -8,7 +8,7 @@ import io from 'socket.io-client';
 import Stats from '../components/stats';
 
 import { connectTransport, createTransport } from '../utils/transport';
-import { consumeMedia } from '../utils/producer';
+import { consumeMedia } from '../utils/consumer';
 
 import styles from '../styles/stream-view.module.scss';
 
@@ -27,59 +27,59 @@ function Viewer({ routerRtpCapabilities, userId }: { routerRtpCapabilities: RtpC
 
 	useEffect(() => {
 		async function init() {
-			const socket = io(process.env.NEXT_PUBLIC_API_URL);
-			socket.on('yes', () => console.log('yes'));
+			// const socket = io(process.env.NEXT_PUBLIC_API_URL);
+			// socket.on('yes', () => console.log('yes'));
 
-			try {
-				console.log('[Transport]', 'Initialisation');
+			// try {
+			// 	console.log('[Transport]', 'Initialisation');
 
-				const device = new Device();
-				await device.load({ routerRtpCapabilities });
-				setDevice(device);
+			// 	const device = new Device();
+			// 	await device.load({ routerRtpCapabilities });
+			// 	setDevice(device);
 
-				console.log('[Transport]', 'Création du transport');
-				const transport = await createTransport({ userId, device, type: 'recv' });
+			// 	console.log('[Transport]', 'Création du transport');
+			// 	const transport = await createTransport({ userId, device, type: 'recv' });
 
-				transport.on('connectionstatechange', (connectionState) => {
-					console.log('[Transport]', 'Statut connexion :', connectionState);
-					setConnectionState(connectionState);
-				});
-				transport.once('connect', async ({ dtlsParameters }, callback, errback) => {
-					console.log('[Transport]', 'Connexion au serveur en cours');
-					connectTransport({ userId, dtlsParameters, type: 'recv' })
-						.then(() => {
-							console.log('[Transport]', 'Connecté au serveur');
-							callback();
-						})
-						.catch(errback);
-				});
-				transport.on('icestatechange', (iceState) => console.log('[Transport]', 'ICE state changed :', iceState));
+			// 	transport.on('connectionstatechange', (connectionState) => {
+			// 		console.log('[Transport]', 'Statut connexion :', connectionState);
+			// 		setConnectionState(connectionState);
+			// 	});
+			// 	transport.once('connect', async ({ dtlsParameters }, callback, errback) => {
+			// 		console.log('[Transport]', 'Connexion au serveur en cours');
+			// 		connectTransport({ userId, dtlsParameters, type: 'recv' })
+			// 			.then(() => {
+			// 				console.log('[Transport]', 'Connecté au serveur');
+			// 				callback();
+			// 			})
+			// 			.catch(errback);
+			// 	});
+			// 	transport.on('icestatechange', (iceState) => console.log('[Transport]', 'ICE state changed :', iceState));
 
-				setTransport(transport);
-			} catch (error) {
-				console.error('[Transport]', 'Browser incompatible', error);
-				setUnsupported(true);
-			}
+			// 	setTransport(transport);
+			// } catch (error) {
+			// 	console.error('[Transport]', 'Browser incompatible', error);
+			// 	setUnsupported(true);
+			// }
 		}
 		init();
 	}, [routerRtpCapabilities, userId]);
 
 	async function start() {
-		if (!transport) return console.warn('[Transport]', 'Non disponible pour le moment');
+		// if (!transport) return console.warn('[Transport]', 'Non disponible pour le moment');
 
-		console.log('[Transport]', 'Consume media - Échange des données rtp capabilities');
-		const data = await consumeMedia({ userId, clientRtpCapabilities: device?.rtpCapabilities, producerId });
+		// console.log('[Transport]', 'Consume media - Échange des données rtp capabilities');
+		// const data = await consumeMedia({ userId, clientRtpCapabilities: device?.rtpCapabilities, producerId });
 
-		try {
-			const consumer = await transport.consume({ id: data.consumerId, producerId, rtpParameters: JSON.parse(rtpParameters), kind: 'video' });
-			console.log('[Transport]', 'Consume success', consumer);
+		// try {
+		// 	const consumer = await transport.consume({ id: data.consumerId, producerId, rtpParameters: JSON.parse(rtpParameters), kind: 'video' });
+		// 	console.log('[Transport]', 'Consume success', consumer);
 
-			const stream = new MediaStream([consumer.track]);
-			videoRef.current.srcObject = stream;
-			videoRef.current.play();
-		} catch (error) {
-			console.error('[Transport]', 'Error', error);
-		}
+		// 	const stream = new MediaStream([consumer.track]);
+		// 	videoRef.current.srcObject = stream;
+		// 	videoRef.current.play();
+		// } catch (error) {
+		// 	console.error('[Transport]', 'Error', error);
+		// }
 	}
 
 	if (!routerRtpCapabilities) {
