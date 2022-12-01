@@ -17,6 +17,11 @@ import {
     removeUser,
 } from "../../lib/Redux";
 
+import { SERVER_EVENTS } from "../../types/events";
+import { Message } from "../../types/message";
+import { Room } from "../../types/room";
+import { User } from "../../types/user";
+
 import styles from "../../styles/chat.module.scss";
 
 function Rooms({
@@ -110,31 +115,25 @@ function Rooms({
     useEffect(scrollToBottom);
 
     if (!room) {
-        return (
-            <>
-                <p>chargement de la room en cours</p>
-            </>
-        );
+        return <p>chargement de la room en cours</p>;
     }
 
     console.log(room);
 
     return (
-        <>
-            <div className={styles["app"]}>
-                <UserList />
-                <div className={styles["container"]}>
-                    <div className={styles["header"]}>
-                        <h4>
-                            {room.name} ({messages.length} messages)
-                        </h4>
-                        <CallManager socket={socket} />
-                    </div>
-                    <MessageList innerRef={messageListRef} />
-                    <ControlsInput socket={socket} />
+        <div className={styles["app"]}>
+            <UserList />
+            <div className={styles["container"]}>
+                <div className={styles["header"]}>
+                    <h4>
+                        {room.name} ({messages.length} messages)
+                    </h4>
+                    <CallManager socket={socket} />
                 </div>
+                <MessageList innerRef={messageListRef} />
+                <ControlsInput socket={socket} />
             </div>
-        </>
+        </div>
     );
 }
 

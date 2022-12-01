@@ -1,6 +1,8 @@
 import { RtpCapabilities, RtpParameters } from "mediasoup-client/lib/types";
 import { Socket } from "socket.io-client";
 
+import { SERVER_EVENTS } from "../types/events";
+
 interface consumeMediaProps {
     socket: Socket;
     clientRtpCapabilities: RtpCapabilities;
@@ -17,7 +19,7 @@ export async function consumeMedia({
 }> {
     return new Promise((resolve, reject) => {
         socket.emit(
-            "consumeMedia",
+            SERVER_EVENTS.CONSUME_MEDIA,
             { clientRtpCapabilities, producerId },
             ({ error, consumerId, rtpParameters }) => {
                 if (error) {

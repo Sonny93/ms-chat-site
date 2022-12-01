@@ -1,4 +1,5 @@
-enum SERVER_EVENTS {
+export enum SERVER_EVENTS {
+    SOCKET_CONNECT = "connect",
     SOCKET_CONNECTION = "connection",
     SOCKET_DISCONNECTING = "disconnecting",
     SOCKET_ERROR = "error",

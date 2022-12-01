@@ -1,10 +1,14 @@
+import { useEffect, useRef, useState } from "react";
+import { Socket } from "socket.io-client";
+
 import { Device } from "mediasoup-client";
 import { Producer } from "mediasoup-client/lib/Producer";
 import { RtpCapabilities } from "mediasoup-client/lib/RtpParameters";
 import { ConnectionState, Transport } from "mediasoup-client/lib/Transport";
-import { useEffect, useRef, useState } from "react";
-import { Socket } from "socket.io-client";
 
+import { SERVER_EVENTS } from "../types/events";
+
+import { User } from "../types/user";
 import { consumeMedia } from "../utils/consumer";
 import { produceMedia } from "../utils/producer";
 import { connectTransport, createTransport } from "../utils/transport";
@@ -31,25 +35,24 @@ export default function CallManager({ socket }: { socket: Socket }) {
                     return console.error(
                         "Le navigateur n'est pas en mesure de produire un flux audio"
                     );
-                } else {
-                    setCanCall(true);
-                    socket.on(
-                        "call-produce",
-                        ({
-                            userId,
-                            producerId,
-                        }: {
-                            userId: string;
-                            producerId: string;
-                        }) => {
-                            console.log(userId, producerId);
-                            setUsersCall((users) => [
-                                ...users,
-                                { userId, producerId },
-                            ]);
-                        }
-                    );
                 }
+
+                setCanCall(true);
+                socket.on(
+                    "call-produce",
+                    ({
+                        userId,
+                        producerId,
+                    }: {
+                        userId: string;
+                        producerId: string;
+                    }) => {
+                        setUsersCall((users) => [
+                            ...users,
+                            { userId, producerId },
+                        ]);
+                    }
+                );
             }
         );
     }, [socket]);
@@ -63,15 +66,13 @@ export default function CallManager({ socket }: { socket: Socket }) {
             <button onClick={() => setCallStarted(true)}>call</button>
             {callStarted && <VideoSender socket={socket} device={device} />}
             {usersCall.map(({ userId, producerId }) => (
-                <>
-                    <p>{userId}</p>
-                    <VideoReceiver
-                        key={userId}
-                        device={device}
-                        socket={socket}
-                        producerId={producerId}
-                    />
-                </>
+                <VideoReceiver
+                    key={userId}
+                    userId={userId}
+                    device={device}
+                    socket={socket}
+                    producerId={producerId}
+                />
             ))}
         </>
     );
@@ -172,7 +173,7 @@ function VideoSender({ device, socket }: { device: Device; socket: Socket }) {
 
     return (
         <>
-            <video ref={videoRef} width={364} autoPlay controls />
+            <video ref={videoRef} style={{ width: "50%" }} autoPlay controls />
             <p>{connectionState}</p>
         </>
     );
@@ -182,10 +183,12 @@ function VideoReceiver({
     device,
     socket,
     producerId,
+    userId,
 }: {
     device: Device;
     socket: Socket;
     producerId: Producer["id"];
+    userId: User["id"];
 }) {
     const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -238,7 +241,6 @@ function VideoReceiver({
                         clientRtpCapabilities: device?.rtpCapabilities,
                         producerId,
                     });
-                    console.log("rtpParameters", rtpParameters);
                     const consumer = await transport.consume({
                         id: consumerId,
                         producerId,
@@ -259,9 +261,9 @@ function VideoReceiver({
 
     return (
         <>
-            <video ref={videoRef} width={364} autoPlay controls />
+            <video ref={videoRef} style={{ width: "50%" }} autoPlay controls />
+            <p>{userId}</p>
             <p>{connectionState}</p>
-            <p>{Date.now()}</p>
         </>
     );
 }

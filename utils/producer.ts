@@ -1,5 +1,11 @@
-import { MediaKind, RtpCapabilities, RtpParameters } from 'mediasoup-client/lib/types';
-import { Socket } from 'socket.io-client';
+import {
+    MediaKind,
+    RtpCapabilities,
+    RtpParameters,
+} from "mediasoup-client/lib/types";
+import { Socket } from "socket.io-client";
+
+import { SERVER_EVENTS } from "../types/events";
 
 interface ProduceMediaProps {
     socket: Socket;
@@ -8,14 +14,23 @@ interface ProduceMediaProps {
     kind: MediaKind;
 }
 
-export async function produceMedia({ socket, rtpParameters, clientRtpCapabilities, kind }: ProduceMediaProps): Promise<string> {
+export async function produceMedia({
+    socket,
+    rtpParameters,
+    clientRtpCapabilities,
+    kind,
+}: ProduceMediaProps): Promise<string> {
     return new Promise((resolve, reject) => {
-        socket.emit('produceMedia', { rtpParameters, clientRtpCapabilities, kind }, ({ error, produceId }) => {
-            if (error) {
-                return reject(error);
-            } else {
-                resolve(produceId);
+        socket.emit(
+            SERVER_EVENTS.PRODUCE_MEDIA,
+            { rtpParameters, clientRtpCapabilities, kind },
+            ({ error, produceId }) => {
+                if (error) {
+                    return reject(error);
+                } else {
+                    resolve(produceId);
+                }
             }
-        });
+        );
     });
 }
