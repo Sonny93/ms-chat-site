@@ -72,10 +72,10 @@ function Rooms({
 
             socket.removeAllListeners();
 
-            socket.on("user-join", handleUserJoin);
-            socket.on("user-leave", handleUserLeave);
-            socket.on("message-new", handleMessageNew);
-            socket.on("message-remove", handleMessageRemove);
+            socket.on(SERVER_EVENTS.USER_JOIN, handleUserJoin);
+            socket.on(SERVER_EVENTS.USER_LEAVE, handleUserLeave);
+            socket.on(SERVER_EVENTS.MESSAGE_NEW, handleMessageNew);
+            socket.on(SERVER_EVENTS.MESSAGE_REMOVE, handleMessageRemove);
 
             return () => {
                 dispatch(clearUsers());
@@ -101,9 +101,9 @@ function Rooms({
     }
 
     useEffect(() => {
-        socket.emit("join-room", roomId, handleJoinRoom);
+        socket.emit(SERVER_EVENTS.ROOM_JOIN, roomId, handleJoinRoom);
         return () => {
-            socket.emit("leave-room", roomId);
+            socket.emit(SERVER_EVENTS.ROOM_LEAVE, roomId);
         };
     }, [roomId, socket, handleJoinRoom]);
 
@@ -116,6 +116,8 @@ function Rooms({
             </>
         );
     }
+
+    console.log(room);
 
     return (
         <>

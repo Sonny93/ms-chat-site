@@ -1,9 +1,7 @@
 import { Device } from "mediasoup-client";
-import {
-    RtpCapabilities,
-    RtpParameters,
-} from "mediasoup-client/lib/RtpParameters";
-import { Transport } from "mediasoup-client/lib/Transport";
+import { Producer } from "mediasoup-client/lib/Producer";
+import { RtpCapabilities } from "mediasoup-client/lib/RtpParameters";
+import { ConnectionState, Transport } from "mediasoup-client/lib/Transport";
 import { useEffect, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
 
@@ -15,20 +13,15 @@ export default function CallManager({ socket }: { socket: Socket }) {
     const [canCall, setCanCall] = useState<boolean>(false);
 
     const [device, setDevice] = useState<Device>(new Device());
+    const [callStarted, setCallStarted] = useState<boolean>(false);
 
-    const [connectionState, setConnectionState] =
-        useState<string>("not connected");
-
-    const [transport, setTransport] = useState<Transport>(null);
-    const [producerId, setProduceId] = useState<string>("");
-    const [rtpParameters, setRtpParameters] = useState<RtpParameters>(null);
-
-    const videoSendRef = useRef<HTMLVideoElement>();
-    const videoRecvRef = useRef<HTMLVideoElement>();
+    const [usersCall, setUsersCall] = useState<
+        { userId: string; producerId: string }[]
+    >([]);
 
     useEffect(() => {
         socket.emit(
-            "routerRtpCapabilities",
+            SERVER_EVENTS.ROUTER_RTP_CAPABILITIES,
             async (routerRtpCapabilities: RtpCapabilities) => {
                 const device = await createDevice({ routerRtpCapabilities });
                 setDevice(device);
@@ -40,138 +33,26 @@ export default function CallManager({ socket }: { socket: Socket }) {
                     );
                 } else {
                     setCanCall(true);
+                    socket.on(
+                        "call-produce",
+                        ({
+                            userId,
+                            producerId,
+                        }: {
+                            userId: string;
+                            producerId: string;
+                        }) => {
+                            console.log(userId, producerId);
+                            setUsersCall((users) => [
+                                ...users,
+                                { userId, producerId },
+                            ]);
+                        }
+                    );
                 }
             }
         );
     }, [socket]);
-
-    async function call() {
-        try {
-            const transport = await createTransport({
-                device,
-                socket,
-                direction: "send",
-            });
-
-            transport.on("connectionstatechange", (connectionState) =>
-                setConnectionState(connectionState)
-            );
-
-            transport.once(
-                "connect",
-                async ({ dtlsParameters }, callback, errback) => {
-                    console.log("[Transport]", "Connexion au serveur en cours");
-                    connectTransport({
-                        dtlsParameters,
-                        socket,
-                        direction: "send",
-                    })
-                        .then(() => {
-                            console.log("[Transport]", "Connecté au serveur");
-                            callback();
-                        })
-                        .catch(errback);
-                }
-            );
-            transport.on(
-                "produce",
-                async ({ kind, rtpParameters }, callback, errback) => {
-                    console.log(
-                        "[Transport]",
-                        "Procuce media - Échange des données rtp capabilities",
-                        JSON.stringify(rtpParameters)
-                    );
-                    setRtpParameters(rtpParameters);
-
-                    const produceMediaOptions = {
-                        socket,
-                        rtpParameters,
-                        clientRtpCapabilities: device.rtpCapabilities,
-                        kind,
-                    };
-                    produceMedia(produceMediaOptions)
-                        .then((produceId) => {
-                            console.log(
-                                "[Transport]",
-                                "Produce success",
-                                produceId
-                            );
-                            callback({ id: produceId });
-                        })
-                        .catch(errback);
-                }
-            );
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    width: 1920,
-                    height: 1080,
-                },
-                audio: false,
-            });
-            const videoTrack = stream.getVideoTracks()[0];
-            videoSendRef.current.srcObject = stream;
-            videoSendRef.current.play();
-
-            const producer = await transport.produce({ track: videoTrack });
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
-    async function receiveCall() {
-        try {
-            const transport = await createTransport({
-                device,
-                socket,
-                direction: "recv",
-            });
-
-            transport.on("connectionstatechange", (connectionState) =>
-                setConnectionState(connectionState)
-            );
-
-            transport.once(
-                "connect",
-                async ({ dtlsParameters }, callback, errback) => {
-                    console.log("[Transport]", "Connexion au serveur en cours");
-                    connectTransport({
-                        dtlsParameters,
-                        socket,
-                        direction: "recv",
-                    })
-                        .then(() => {
-                            console.log("[Transport]", "Connecté au serveur");
-                            callback();
-                        })
-                        .catch(errback);
-                }
-            );
-
-            console.log(
-                "[Transport]",
-                "Consume media - Échange des données rtp capabilities"
-            );
-            const { consumerId, rtpParameters } = await consumeMedia({
-                socket,
-                clientRtpCapabilities: device?.rtpCapabilities,
-                producerId,
-            });
-            console.log("rtpParameters", rtpParameters);
-            const consumer = await transport.consume({
-                id: consumerId,
-                producerId,
-                rtpParameters,
-                kind: "video",
-            });
-            console.log("[Transport]", "Consume success", consumer);
-
-            const stream = new MediaStream([consumer.track]);
-            videoRecvRef.current.srcObject = stream;
-            videoRecvRef.current.play();
-        } catch (error) {
-            console.error(error);
-        }
-    }
 
     if (!canCall) {
         return <>cant make call</>;
@@ -179,30 +60,208 @@ export default function CallManager({ socket }: { socket: Socket }) {
 
     return (
         <>
-            <button onClick={call}>call</button>
-            <button onClick={receiveCall}>receive call</button>
-            <textarea
-                onChange={(event) => setProduceId(event.target.value)}
-                value={producerId}
-            ></textarea>
-            <div
-                className="videos"
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
-            >
-                {connectionState}
-                <div>
-                    <p>send</p>
-                    <video controls ref={videoSendRef} width={364} />
-                </div>
-                <div>
-                    <p>recv</p>
-                    <video controls ref={videoRecvRef} width={364} />
-                </div>
-            </div>
+            <button onClick={() => setCallStarted(true)}>call</button>
+            {callStarted && <VideoSender socket={socket} device={device} />}
+            {usersCall.map(({ userId, producerId }) => (
+                <>
+                    <p>{userId}</p>
+                    <VideoReceiver
+                        key={userId}
+                        device={device}
+                        socket={socket}
+                        producerId={producerId}
+                    />
+                </>
+            ))}
+        </>
+    );
+}
+
+function VideoSender({ device, socket }: { device: Device; socket: Socket }) {
+    const videoRef = useRef<HTMLVideoElement>(null);
+
+    const [transport, setTransport] = useState<Transport>(null);
+    const [connectionState, setConnectionState] = useState<ConnectionState>();
+
+    useEffect(() => {
+        if (!transport) {
+            createTransport({
+                device,
+                socket,
+                direction: "send",
+            })
+                .then((transport) => {
+                    setTransport(transport);
+
+                    transport.on("connectionstatechange", (connectionState) =>
+                        setConnectionState(connectionState)
+                    );
+
+                    transport.once(
+                        "connect",
+                        async ({ dtlsParameters }, callback, errback) => {
+                            console.log(
+                                "[Transport]",
+                                "Connexion au serveur en cours"
+                            );
+                            connectTransport({
+                                dtlsParameters,
+                                socket,
+                                direction: "send",
+                            })
+                                .then(() => {
+                                    console.log(
+                                        "[Transport]",
+                                        "Connecté au serveur"
+                                    );
+                                    callback();
+                                })
+                                .catch(errback);
+                        }
+                    );
+
+                    transport.on(
+                        "produce",
+                        ({ kind, rtpParameters }, callback, errback) => {
+                            console.log(
+                                "[Transport]",
+                                "Procuce media - Échange des données rtp capabilities"
+                            );
+
+                            const produceMediaOptions = {
+                                socket,
+                                rtpParameters,
+                                clientRtpCapabilities: device.rtpCapabilities,
+                                kind,
+                            };
+                            produceMedia(produceMediaOptions)
+                                .then((produceId) => {
+                                    console.log(
+                                        "[Transport]",
+                                        "Produce success",
+                                        produceId
+                                    );
+                                    callback({ id: produceId });
+                                })
+                                .catch(errback);
+                        }
+                    );
+
+                    navigator.mediaDevices
+                        .getDisplayMedia({
+                            video: {
+                                width: 1920,
+                                height: 1080,
+                            },
+                            audio: false,
+                        })
+                        .then((stream) => {
+                            const videoTrack = stream.getVideoTracks()[0];
+                            videoRef.current.srcObject = stream;
+                            videoRef.current.play();
+
+                            transport.produce({ track: videoTrack });
+                        })
+                        .catch(console.error);
+                })
+                .catch(console.error);
+        }
+
+        return () => transport?.close();
+    }, [device, socket, transport]);
+
+    return (
+        <>
+            <video ref={videoRef} width={364} autoPlay controls />
+            <p>{connectionState}</p>
+        </>
+    );
+}
+
+function VideoReceiver({
+    device,
+    socket,
+    producerId,
+}: {
+    device: Device;
+    socket: Socket;
+    producerId: Producer["id"];
+}) {
+    const videoRef = useRef<HTMLVideoElement>(null);
+
+    const [transport, setTransport] = useState<Transport>(null);
+    const [connectionState, setConnectionState] = useState<ConnectionState>();
+
+    useEffect(() => {
+        if (!transport) {
+            createTransport({
+                device,
+                socket,
+                direction: "recv",
+            })
+                .then(async (transport) => {
+                    setTransport(transport);
+
+                    transport.on("connectionstatechange", (connectionState) =>
+                        setConnectionState(connectionState)
+                    );
+
+                    transport.once(
+                        "connect",
+                        async ({ dtlsParameters }, callback, errback) => {
+                            console.log(
+                                "[Transport]",
+                                "Connexion au serveur en cours"
+                            );
+                            connectTransport({
+                                dtlsParameters,
+                                socket,
+                                direction: "recv",
+                            })
+                                .then(() => {
+                                    console.log(
+                                        "[Transport]",
+                                        "Connecté au serveur"
+                                    );
+                                    callback();
+                                })
+                                .catch(errback);
+                        }
+                    );
+
+                    console.log(
+                        "[Transport]",
+                        "Consume media - Échange des données rtp capabilities"
+                    );
+                    const { consumerId, rtpParameters } = await consumeMedia({
+                        socket,
+                        clientRtpCapabilities: device?.rtpCapabilities,
+                        producerId,
+                    });
+                    console.log("rtpParameters", rtpParameters);
+                    const consumer = await transport.consume({
+                        id: consumerId,
+                        producerId,
+                        rtpParameters,
+                        kind: "video",
+                    });
+                    console.log("[Transport]", "Consume success", consumer);
+
+                    const stream = new MediaStream([consumer.track]);
+                    videoRef.current.srcObject = stream;
+                    videoRef.current.play();
+                })
+                .catch(console.error);
+        }
+
+        return () => transport?.close();
+    }, [device, producerId, socket, transport]);
+
+    return (
+        <>
+            <video ref={videoRef} width={364} autoPlay controls />
+            <p>{connectionState}</p>
+            <p>{Date.now()}</p>
         </>
     );
 }
