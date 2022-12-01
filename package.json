@@ -9,23 +9,23 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^1.8.2",
-    "mediasoup-client": "^3.6.52",
-    "next": "12.1.6",
-    "next-auth": "^4.5.0",
+    "@reduxjs/toolkit": "^1.9.1",
+    "mediasoup-client": "^3.6.63",
+    "next": "13.0.5",
+    "next-auth": "^4.17.0",
     "nprogress": "^0.2.0",
-    "react": "18.1.0",
-    "react-dom": "18.1.0",
-    "react-redux": "^8.0.2",
-    "sass": "^1.52.3",
-    "socket.io-client": "^4.5.1"
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-redux": "^8.0.5",
+    "sass": "^1.56.1",
+    "socket.io-client": "^4.5.4"
   },
   "devDependencies": {
-    "@types/node": "17.0.42",
-    "@types/react": "18.0.12",
-    "@types/react-dom": "18.0.5",
-    "eslint": "8.17.0",
-    "eslint-config-next": "12.1.6",
-    "typescript": "4.7.3"
+    "@types/node": "18.11.10",
+    "@types/react": "18.0.25",
+    "@types/react-dom": "18.0.9",
+    "eslint": "8.28.0",
+    "eslint-config-next": "13.0.5",
+    "typescript": "4.9.3"
   }
 }

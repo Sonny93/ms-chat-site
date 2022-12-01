@@ -1,11 +1,11 @@
-import Link from 'next/link';
-import { Socket } from 'socket.io-client';
+import Link from "next/link";
+import { Socket } from "socket.io-client";
 
-import styles from '../styles/home.module.scss';
+import styles from "../styles/home.module.scss";
 
-function Index({ rooms }: { socket: Socket; rooms: Room[]; }) {
+function Index({ rooms }: { socket: Socket; rooms: Room[] }) {
     return (
-        <div className={styles['app']}>
+        <div className={styles["app"]}>
             <h1>Rooms</h1>
             {rooms && (
                 <ul>
@@ -15,16 +15,14 @@ function Index({ rooms }: { socket: Socket; rooms: Room[]; }) {
                                 {room.name} ({room.users.length} users)
                             </div>
                             <div>
-                                <Link href={`/rooms/${room.id}`}>
-                                    <a>Join</a>
-                                </Link>
+                                <Link href={`/rooms/${room.id}`}>Join</Link>
                             </div>
                         </li>
                     ))}
                 </ul>
             )}
         </div>
-    )
+    );
 }
 
 Index.authRequired = true;
