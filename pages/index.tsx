@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Socket } from "socket.io-client";
 
 import styles from "../styles/home.module.scss";
+import { Room } from "../types/room";
 
 function Index({ rooms }: { socket: Socket; rooms: Room[] }) {
     return (

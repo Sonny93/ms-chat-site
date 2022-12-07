@@ -7,8 +7,8 @@ import { RtpCapabilities } from "mediasoup-client/lib/RtpParameters";
 import { ConnectionState, Transport } from "mediasoup-client/lib/Transport";
 
 import { SERVER_EVENTS } from "../types/events";
-
 import { User } from "../types/user";
+
 import { consumeMedia } from "../utils/consumer";
 import { produceMedia } from "../utils/producer";
 import { connectTransport, createTransport } from "../utils/transport";
@@ -19,9 +19,11 @@ export default function CallManager({ socket }: { socket: Socket }) {
     const [device, setDevice] = useState<Device>(new Device());
     const [callStarted, setCallStarted] = useState<boolean>(false);
 
-    const [usersCall, setUsersCall] = useState<
-        { userId: string; producerId: string }[]
-    >([]);
+    type UserCall = {
+        userId: string;
+        producerId: string;
+    };
+    const [usersCall, setUsersCall] = useState<UserCall[]>([]);
 
     useEffect(() => {
         socket.emit(
@@ -33,20 +35,14 @@ export default function CallManager({ socket }: { socket: Socket }) {
                 if (!device.canProduce("video")) {
                     setCanCall(false);
                     return console.error(
-                        "Le navigateur n'est pas en mesure de produire un flux audio"
+                        "Le navigateur n'est pas en mesure de produire un flux vidéo"
                     );
                 }
 
                 setCanCall(true);
                 socket.on(
                     "call-produce",
-                    ({
-                        userId,
-                        producerId,
-                    }: {
-                        userId: string;
-                        producerId: string;
-                    }) => {
+                    ({ userId, producerId }: UserCall) => {
                         setUsersCall((users) => [
                             ...users,
                             { userId, producerId },
@@ -64,16 +60,24 @@ export default function CallManager({ socket }: { socket: Socket }) {
     return (
         <>
             <button onClick={() => setCallStarted(true)}>call</button>
-            {callStarted && <VideoSender socket={socket} device={device} />}
-            {usersCall.map(({ userId, producerId }) => (
-                <VideoReceiver
-                    key={userId}
-                    userId={userId}
-                    device={device}
-                    socket={socket}
-                    producerId={producerId}
-                />
-            ))}
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}
+            >
+                {callStarted && <VideoSender socket={socket} device={device} />}
+                {usersCall.map(({ userId, producerId }) => (
+                    <VideoReceiver
+                        key={userId}
+                        userId={userId}
+                        device={device}
+                        socket={socket}
+                        producerId={producerId}
+                    />
+                ))}
+            </div>
         </>
     );
 }
@@ -172,10 +176,10 @@ function VideoSender({ device, socket }: { device: Device; socket: Socket }) {
     }, [device, socket, transport]);
 
     return (
-        <>
+        <div>
             <video ref={videoRef} style={{ width: "50%" }} autoPlay controls />
             <p>{connectionState}</p>
-        </>
+        </div>
     );
 }
 
@@ -260,11 +264,11 @@ function VideoReceiver({
     }, [device, producerId, socket, transport]);
 
     return (
-        <>
+        <div>
             <video ref={videoRef} style={{ width: "50%" }} autoPlay controls />
             <p>{userId}</p>
             <p>{connectionState}</p>
-        </>
+        </div>
     );
 }
 
