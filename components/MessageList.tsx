@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { Ref } from "react";
+import { Ref } from "react";
 import { useSelector } from "react-redux";
 import styles from "../styles/chat.module.scss";
 import { Message } from "../types/message";
@@ -31,7 +31,6 @@ function MessageItem({ message }: { message: Message }) {
                     src={message.author.avatar}
                     width={40}
                     height={40}
-                    layout="raw"
                     alt={message.author.username + " avatar"}
                 />
             </div>

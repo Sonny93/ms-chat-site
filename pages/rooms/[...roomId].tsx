@@ -32,6 +32,7 @@ function Rooms({
     socket: Socket;
 }) {
     const router = useRouter();
+    const messageListRef = useRef<HTMLUListElement>(null);
     const [room, setRoom] = useState<Room>(null);
 
     const { messages } = useSelector(
@@ -41,8 +42,6 @@ function Rooms({
         })
     );
     const dispatch = useDispatch();
-
-    const messageListRef = useRef<HTMLUListElement>(null);
 
     const handleUserJoin = useCallback(
         (user: User) => dispatch(addUser(user)),
@@ -98,21 +97,20 @@ function Rooms({
         ]
     );
 
-    function scrollToBottom() {
-        const element = messageListRef?.current;
-        if (element) {
-            element.scrollTop = element.scrollHeight;
-        }
-    }
-
     useEffect(() => {
         socket.emit(SERVER_EVENTS.ROOM_JOIN, roomId, handleJoinRoom);
+
         return () => {
             socket.emit(SERVER_EVENTS.ROOM_LEAVE, roomId);
         };
     }, [roomId, socket, handleJoinRoom]);
 
-    useEffect(scrollToBottom);
+    useEffect(() => {
+        const element = messageListRef?.current;
+        if (element) {
+            element.scrollTop = element.scrollHeight;
+        }
+    });
 
     if (!room) {
         return <p>chargement de la room en cours</p>;
