@@ -1,9 +1,10 @@
 import { Device } from "mediasoup-client";
 import { Producer } from "mediasoup-client/lib/Producer";
 import { ConnectionState, Transport } from "mediasoup-client/lib/Transport";
-import { User } from "next-auth";
 import { useEffect, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
+
+import { User } from "../types/user";
 import { consumeMedia } from "../utils/consumer";
 import { connectTransport, createTransport } from "../utils/transport";
 
@@ -11,12 +12,12 @@ export default function VideoReceiver({
     device,
     socket,
     producerId,
-    userId,
+    user,
 }: {
     device: Device;
     socket: Socket;
     producerId: Producer["id"];
-    userId: User["id"];
+    user: User;
 }) {
     const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -54,7 +55,7 @@ export default function VideoReceiver({
     return (
         <div>
             <video ref={videoRef} style={{ width: "50%" }} autoPlay controls />
-            <p>{userId}</p>
+            <p>{user.username || "Utilisateur introuvable"}</p>
             <p>{connectionState}</p>
         </div>
     );

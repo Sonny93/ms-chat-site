@@ -126,7 +126,7 @@ function Rooms({
                     <h4>
                         {room.name} ({messages.length} messages)
                     </h4>
-                    <CallManager socket={socket} />
+                    <CallManager socket={socket} room={room} />
                 </div>
                 <MessageList innerRef={messageListRef} />
                 <ControlsInput socket={socket} />

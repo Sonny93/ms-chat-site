@@ -6,25 +6,29 @@ import { RtpCapabilities } from "mediasoup-client/lib/RtpParameters";
 
 import { SERVER_EVENTS } from "../types/events";
 
+import { Room, RoomProducer } from "../types/room";
 import VideoReceiver from "./VideoReceiver";
 import VideoSender from "./VideoSender";
 
-export type UserCall = {
-    userId: string;
-    producerId: string;
-};
-
-export default function CallManager({ socket }: { socket: Socket }) {
+export default function CallManager({
+    socket,
+    room,
+}: {
+    socket: Socket;
+    room: Room;
+}) {
     const [device, setDevice] = useState<Device>(new Device());
     const [callStarted, setCallStarted] = useState<boolean>(false);
-    const [usersCall, setUsersCall] = useState<UserCall[]>([]);
+    const [usersCall, setUsersCall] = useState<Room["producers"]>(
+        room.producers || []
+    );
 
     const canCall = useMemo<boolean>(
         () => (device.loaded ? device.canProduce("video") : false),
         [device]
     );
 
-    const addUserCall = (user: UserCall) =>
+    const addUserCall = (user: RoomProducer) =>
         setUsersCall((users) => [...users, user]);
 
     const handleStartCall = () => setCallStarted(true);
@@ -58,15 +62,20 @@ export default function CallManager({ socket }: { socket: Socket }) {
                 }}
             >
                 {callStarted && <VideoSender socket={socket} device={device} />}
-                {usersCall.map(({ userId, producerId }) => (
-                    <VideoReceiver
-                        key={userId}
-                        userId={userId}
-                        device={device}
-                        socket={socket}
-                        producerId={producerId}
-                    />
-                ))}
+                {usersCall.length}
+                {usersCall.map(({ userId, producerId }) => {
+                    const user = room.users.find((u) => u.id === userId);
+                    console.log("userId", userId, room.users, user);
+                    return (
+                        <VideoReceiver
+                            key={userId}
+                            user={user}
+                            device={device}
+                            socket={socket}
+                            producerId={producerId}
+                        />
+                    );
+                })}
             </div>
         </>
     );
